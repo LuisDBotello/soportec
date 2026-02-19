@@ -22,6 +22,190 @@ body {
   color: var(--text);
 }
 
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 1.2rem 1.2rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.app-nav a {
+  text-decoration: none;
+  color: #214b79;
+  border: 1px solid #c8d7ea;
+  padding: 0.4rem 0.85rem;
+  padding-bottom: 0.65rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #edf4fc;
+}
+
+.app-nav a.active {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.simple-page {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 1.2rem;
+}
+
+.simple-page h1,
+.simple-page h2 {
+  margin: 0 0 0.35rem;
+}
+
+.simple-page p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.home-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.home-link-card {
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 0.9rem;
+  box-shadow: 0 8px 18px rgba(28, 50, 77, 0.08);
+}
+
+.home-link-card h3 {
+  margin: 0;
+}
+
+.home-link-card p {
+  margin-top: 0.45rem;
+}
+
+.login-page {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 1.2rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1.1fr;
+}
+
+.brand-panel,
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 10px 24px rgba(28, 50, 77, 0.08);
+}
+
+.brand-panel h1 {
+  margin: 0.1rem 0 0.2rem;
+}
+
+.brand-tag {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.brand-subtitle {
+  color: var(--muted);
+}
+
+.brand-points {
+  margin: 0.9rem 0 0;
+  padding-left: 1rem;
+}
+
+.brand-points li + li {
+  margin-top: 0.35rem;
+}
+
+.login-eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.login-card h2 {
+  margin: 0.3rem 0;
+}
+
+.login-copy {
+  margin: 0;
+  color: var(--muted);
+}
+
+.login-form {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.login-field {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.login-field input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(11, 95, 179, 0.15);
+}
+
+.login-help {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.login-help a {
+  color: #245489;
+  font-size: 0.9rem;
+}
+
+.login-error {
+  margin: 0;
+  color: #912020;
+  font-weight: 600;
+}
+
 .users-page {
   width: min(1200px, 100%);
   margin: 0 auto;
@@ -180,6 +364,12 @@ button:disabled {
 }
 
 @media (max-width: 980px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .login-page,
   .users-grid {
     grid-template-columns: 1fr;
   }
