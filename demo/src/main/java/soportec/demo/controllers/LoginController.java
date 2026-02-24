@@ -21,7 +21,7 @@ public class LoginController {
     @PostMapping("")
     public ResponseEntity<?> login(String token, String username, String password) {
 
-        if (!JwtUtil.validarToken(token)) 
+        if (!JwtUtil.esValido(token)) 
             return ResponseEntity.status(401).body("Token inválido");
 
         Usuario user = usuarioService.findByUsername(JwtUtil.getUsername(token));

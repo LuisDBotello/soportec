@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 
-const API_URL = 'http://localhost:8080/api/users'
+const API_URL = `${import.meta.env.VITE_API_URL}/users`;
 
 const EMPTY_FORM = {
   nombre: '',
@@ -9,7 +9,7 @@ const EMPTY_FORM = {
   correo: '',
   username: '',
   departamentoId: '',
-  nivel: ''
+  nivelId: ''
 }
 
 function UserCrud() {
@@ -75,6 +75,9 @@ function UserCrud() {
       payload.departamento = { idDepartamento: Number(form.departamentoId) }
     }
 
+    if (form.nivelId) {
+      payload.nivel = { idNivel: Number(form.nivelId) }
+    }
     return payload
   }
 
@@ -117,7 +120,7 @@ function UserCrud() {
       correo: user.correo || '',
       username: user.username || '',
       departamentoId: String(user.departamento?.idDepartamento || ''),
-      nivel: user.nivel || ''
+      nivelId: String(user.nivel?.id_nivel || '')
     })
     setError('')
     setSuccess('')
@@ -185,8 +188,15 @@ function UserCrud() {
               <input name="departamentoId" type="number" min="1" value={form.departamentoId} onChange={handleChange} required />
             </label>
             <label>
-              Nivel
-              <input name="nivel" value={form.nivel} onChange={handleChange} required maxLength={10} />
+              ID Nivel
+              <input
+                name="nivelId"
+                type="number"
+                min="1"
+                value={form.nivelId}
+                onChange={handleChange}
+                required
+              />
             </label>
 
             <div className="users-actions">
@@ -220,7 +230,7 @@ function UserCrud() {
                       <td>{`${user.nombre || ''} ${user.apellidoP || ''}`.trim()}</td>
                       <td>{user.username || '-'}</td>
                       <td>{user.departamento?.idDepartamento || '-'}</td>
-                      <td>{user.nivel || '-'}</td>
+                      <td>{user.nivel?.nombre || '-'}</td>                      
                       <td className="users-row-actions">
                         <button type="button" className="secondary" onClick={() => handleEdit(user)}>Editar</button>
                         <button type="button" className="danger" onClick={() => handleDelete(user.idUsuario)}>Eliminar</button>

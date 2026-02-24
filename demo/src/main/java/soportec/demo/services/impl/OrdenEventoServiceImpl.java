@@ -6,9 +6,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import soportec.demo.models.OrdenEvento;
-import soportec.demo.models.OrdenEventoId;
+import soportec.demo.models.ids.OrdenEventoId;
 import soportec.demo.repositories.OrdenEventoRepository;
-import soportec.demo.services.OrdenEventoService;
+import soportec.demo.services.service.OrdenEventoService;
 
 @Service
 public class OrdenEventoServiceImpl implements OrdenEventoService {

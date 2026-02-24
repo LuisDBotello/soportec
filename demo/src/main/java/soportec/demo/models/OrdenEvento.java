@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import soportec.demo.models.ids.OrdenEventoId;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -43,3 +45,4 @@ public class OrdenEvento {
     @JoinColumn(name = "estado", referencedColumnName = "id_estado")
     private EstadoEvento estadoEvento;
 }
+

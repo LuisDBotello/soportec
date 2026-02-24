@@ -41,7 +41,7 @@ public class JwtUtil {
     }
 
     // Validar token
-    public static boolean validarToken(String token) {
+    public static boolean esValido(String token) {
         try {
             extraerClaims(token);
             return true;

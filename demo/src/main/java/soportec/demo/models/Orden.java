@@ -45,14 +45,14 @@ public class Orden {
     private Servicio servicio;
 
     @ManyToOne
-    @JoinColumn(name = "id_equipo")
-    private Equipo equipo;
+    @JoinColumn(name = "id_activo")
+    private Activo activo;
 
     @Column(name = "fecha_creacion", nullable = false)
-    private LocalDate fecha_creacion;
+    private LocalDate fechaCreacion;
 
-    @Column(name = "fecha_cierre", nullable = true)
-    private LocalDate fecha_cierre;
+    @Column(name = "fecha_cierre")
+    private LocalDate fechaCierre;
 
     @Column(name = "estatus", nullable = false, length = 30)
     private String estatus;

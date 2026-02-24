@@ -37,6 +37,7 @@ public class Usuario {
     @JoinColumn(name = "id_depto", nullable = false)
     private Departamento departamento;
 
-    @Column(name = "NIVEL", nullable = false, length = 10)
-    private String nivel;
+    @ManyToOne
+    @JoinColumn(name = "id_nivel", nullable = false)
+    private NivelPriv nivel;
 }

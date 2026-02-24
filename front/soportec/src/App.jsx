@@ -4,10 +4,13 @@ import Home from './pages/Home'
 import UsuariosCrud from './pages/usuariosCrud'
 import Login from './pages/Login'
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ROUTES = {
   home: '/',
   usuarios: '/usuarios',
-  login: '/login'
+  login: '/login',
+  init: '/init'
 }
 
 const NAV_ITEMS = [
@@ -53,6 +56,7 @@ function App() {
     if (path === ROUTES.login) {
       return <Login />
     }
+
 
     return (
       <section className="simple-page">
