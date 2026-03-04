@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.impl;
+package soportec.demo.services.impl;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,5 +34,10 @@ public class RamModeloServiceImpl implements RamModeloService {
     @Override
     public void deleteById(Integer id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<RamModelo> findByMarcaRam(Integer idMarcaRam) {
+        return repository.findByMarcaRam_IdMarcaRam(idMarcaRam);
     }
 }

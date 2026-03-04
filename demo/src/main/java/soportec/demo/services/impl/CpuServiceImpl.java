@@ -35,4 +35,19 @@ public class CpuServiceImpl implements CpuService {
     public void deleteById(Integer id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public List<Cpu> findDisponibles() {
+        return repository.findByActivoIsNull();
+    }
+
+    @Override
+    public Optional<Cpu> findDisponibleById(Integer id) {
+        return repository.findByIdProcesadorAndActivoIsNull(id);
+    }
+
+    @Override
+    public Integer getNextIdProcesador() {
+        return repository.findMaxIdProcesador() + 1;
+    }
 }

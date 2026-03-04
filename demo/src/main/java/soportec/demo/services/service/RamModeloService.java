@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.service;
+package soportec.demo.services.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,4 +13,6 @@ public interface RamModeloService {
     RamModelo save(RamModelo entity);
 
     void deleteById(Integer id);
+
+    List<RamModelo> findByMarcaRam(Integer idMarcaRam);
 }

@@ -14,6 +14,11 @@ import soportec.demo.models.Ram;
 public class DtoActivoCreateReq {
     
     private Activo activo;
+    private Integer cpuDisponibleId;
+    private Integer ramDisponibleId;
+    private Integer discoDisponibleId;
+    private Integer motherboardDisponibleId;
+    private Integer nicDisponibleId;
     private Cpu cpu;
     private Ram ram;
     private Disco disco;

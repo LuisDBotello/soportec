@@ -13,4 +13,10 @@ public interface CpuService {
     Cpu save(Cpu entity);
 
     void deleteById(Integer id);
+
+    List<Cpu> findDisponibles();
+
+    Optional<Cpu> findDisponibleById(Integer id);
+
+    Integer getNextIdProcesador();
 }

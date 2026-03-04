@@ -35,4 +35,9 @@ public class CpuModeloServiceImpl implements CpuModeloService {
     public void deleteById(Integer id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public List<CpuModelo> findByMarcaCpu(Integer idMarcaCpu) {
+        return repository.findByMarcaCpu_IdMarcaCpu(idMarcaCpu);
+    }
 }

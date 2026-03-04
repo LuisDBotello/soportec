@@ -13,4 +13,6 @@ public interface CpuModeloService {
     CpuModelo save(CpuModelo entity);
 
     void deleteById(Integer id);
+
+    List<CpuModelo> findByMarcaCpu(Integer idMarcaCpu);
 }

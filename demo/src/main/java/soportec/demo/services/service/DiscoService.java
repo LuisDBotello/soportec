@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.service;
+package soportec.demo.services.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,4 +13,8 @@ public interface DiscoService {
     Disco save(Disco entity);
 
     void deleteById(Integer id);
+
+    List<Disco> findDisponibles();
+
+    Optional<Disco> findDisponibleById(Integer id);
 }

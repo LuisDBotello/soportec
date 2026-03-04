@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.service;
+package soportec.demo.services.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,4 +13,8 @@ public interface NicService {
     Nic save(Nic entity);
 
     void deleteById(Integer id);
+
+    List<Nic> findDisponibles();
+
+    Optional<Nic> findDisponibleById(Integer id);
 }

@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.service;
+package soportec.demo.services.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,4 +13,6 @@ public interface DiscoModeloService {
     DiscoModelo save(DiscoModelo entity);
 
     void deleteById(Integer id);
+
+    List<DiscoModelo> findByMarcaDisco(Integer idMarcaDisco);
 }

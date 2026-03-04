@@ -41,5 +41,12 @@ public class TipoActivoServiceImpl implements TipoActivoService {
         return repository.esEscritorio(tipoActivo);
     }
 
+    @Override
+    public List<TipoActivo> findByCategoriaActivo(Integer idCategoriaActivo) {
+        return repository.findByCategoriaActivo(idCategoriaActivo);
+    }
+
+    
+
     
 }

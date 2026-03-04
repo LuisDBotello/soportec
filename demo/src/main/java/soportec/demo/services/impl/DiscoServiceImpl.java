@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.impl;
+package soportec.demo.services.impl;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,5 +34,15 @@ public class DiscoServiceImpl implements DiscoService {
     @Override
     public void deleteById(Integer id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<Disco> findDisponibles() {
+        return repository.findByActivoIsNull();
+    }
+
+    @Override
+    public Optional<Disco> findDisponibleById(Integer id) {
+        return repository.findByIdDiscoAndActivoIsNull(id);
     }
 }

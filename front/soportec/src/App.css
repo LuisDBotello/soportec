@@ -363,6 +363,144 @@ button:disabled {
   color: var(--ok);
 }
 
+.asset-page {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 1.2rem;
+}
+
+.asset-header h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.asset-header p {
+  margin-top: 0.35rem;
+  color: var(--muted);
+}
+
+.asset-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.asset-section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 10px 24px rgba(28, 50, 77, 0.08);
+}
+
+.asset-section h2 {
+  margin: 0 0 0.9rem;
+}
+
+.asset-section-help {
+  margin: -0.5rem 0 0.8rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.asset-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.asset-grid.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-field {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(11, 95, 179, 0.15);
+}
+
+.field-error {
+  color: #912020;
+  font-size: 0.82rem;
+}
+
+.componentes-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.component-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.8rem;
+  background: #fbfdff;
+}
+
+.component-card h3 {
+  margin: 0 0 0.7rem;
+}
+
+.modelo-details {
+  margin-top: 0.55rem;
+}
+
+.modelo-details summary {
+  cursor: pointer;
+  color: #214b79;
+  font-weight: 600;
+}
+
+.modelo-details p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+}
+
+.modelo-inline-resumen {
+  margin: 0.45rem 0 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px dashed #bfd0e3;
+  border-radius: 8px;
+  color: #355577;
+  background: #f4f9ff;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cpu-counter {
+  margin: 0;
+  padding: 0.25rem 0.45rem;
+  border-radius: 6px;
+  background: #eef5fd;
+  color: #2f4f72;
+  font-size: 0.82rem;
+  font-weight: 600;
+  grid-column: 1 / -1;
+}
+
+.asset-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 980px) {
   .app-header {
     flex-direction: column;
@@ -371,6 +509,11 @@ button:disabled {
 
   .login-page,
   .users-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-grid,
+  .asset-grid.compact {
     grid-template-columns: 1fr;
   }
 }

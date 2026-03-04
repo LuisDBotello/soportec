@@ -15,4 +15,6 @@ public interface TipoActivoService {
     void deleteById(Integer id);
 
     Boolean esEscritorio(TipoActivo tipoActivo);
+
+    List<TipoActivo> findByCategoriaActivo(Integer idCategoriaActivo);
 }

@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.impl;
+package soportec.demo.services.impl;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,5 +34,15 @@ public class MotherboardServiceImpl implements MotherboardService {
     @Override
     public void deleteById(Integer id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<Motherboard> findDisponibles() {
+        return repository.findByActivoIsNull();
+    }
+
+    @Override
+    public Optional<Motherboard> findDisponibleById(Integer id) {
+        return repository.findByIdMotherboardAndActivoIsNull(id);
     }
 }

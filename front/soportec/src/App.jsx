@@ -3,6 +3,7 @@ import './App.css'
 import Home from './pages/Home'
 import UsuariosCrud from './pages/usuariosCrud'
 import Login from './pages/Login'
+import CrearActivoPage from './pages/CrearActivoPage'
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -10,13 +11,15 @@ const ROUTES = {
   home: '/',
   usuarios: '/usuarios',
   login: '/login',
+  activos: '/activos/nuevo',
   init: '/init'
 }
 
 const NAV_ITEMS = [
   { to: ROUTES.home, label: 'Inicio' },
   { to: ROUTES.usuarios, label: 'Usuarios CRUD' },
-  { to: ROUTES.login, label: 'Login' }
+  { to: ROUTES.login, label: 'Login' },
+  { to: ROUTES.activos, label: 'Registrar Activo' }
 ]
 
 function normalizeHash(hash) {
@@ -55,6 +58,10 @@ function App() {
 
     if (path === ROUTES.login) {
       return <Login />
+    }
+
+    if (path === ROUTES.activos) {
+      return <CrearActivoPage />
     }
 
 

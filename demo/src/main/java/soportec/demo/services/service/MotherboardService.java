@@ -1,4 +1,4 @@
-﻿package soportec.demo.services.service;
+package soportec.demo.services.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,4 +13,8 @@ public interface MotherboardService {
     Motherboard save(Motherboard entity);
 
     void deleteById(Integer id);
+
+    List<Motherboard> findDisponibles();
+
+    Optional<Motherboard> findDisponibleById(Integer id);
 }
