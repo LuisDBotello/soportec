@@ -13,4 +13,6 @@ public interface EspacioService {
     Espacio save(Espacio entity);
 
     void deleteById(Integer id);
+
+    List<Espacio> findByEdificioId(Integer idEdificio);
 }

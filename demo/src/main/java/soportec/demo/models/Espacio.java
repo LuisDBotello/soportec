@@ -21,11 +21,11 @@ public class Espacio {
 
     @Id
     @Column(name = "id_espacio")
-    private Integer id_espacio;
+    private Integer idEspacio;
 
     @ManyToOne
     @JoinColumn(name = "id_edificio", nullable = false)
-    private Edificio id_edificio;
+    private Edificio edificio;
 
     @Column(name = "nombre", nullable = false, length = 20)
     private String nombre;

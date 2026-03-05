@@ -34,6 +34,22 @@ function createEmptyComponentes() {
   }
 }
 
+function createEmptyExtraComponentes() {
+  return {
+    ram: [],
+    disco: []
+  }
+}
+
+function createEmptyComponenteNuevo() {
+  return {
+    marcaId: '',
+    modeloId: '',
+    numeroSerie: '',
+    fechaCompra: getTodayDateInput()
+  }
+}
+
 const COMPONENT_DEFINITIONS = [
   { key: 'cpu', payloadType: 'CPU', endpoint: 'cpu', disponibleField: 'cpuDisponibleId' },
   { key: 'ram', payloadType: 'RAM', endpoint: 'ram', disponibleField: 'ramDisponibleId' },
@@ -67,11 +83,11 @@ const EMPTY_LOADING_COMPONENTS = {
 }
 
 const EMPTY_MODEL_CATALOGS = {
-  cpu: { marcas: [], modelos: [] },
-  ram: { marcas: [], modelos: [] },
-  motherboard: { marcas: [], modelos: [] },
-  disco: { marcas: [], modelos: [] },
-  nic: { marcas: [], modelos: [] }
+  cpu: { marcas: [], modelos: [], modelosByMarca: {} },
+  ram: { marcas: [], modelos: [], modelosByMarca: {} },
+  motherboard: { marcas: [], modelos: [], modelosByMarca: {} },
+  disco: { marcas: [], modelos: [], modelosByMarca: {} },
+  nic: { marcas: [], modelos: [], modelosByMarca: {} }
 }
 
 function parseResponseError(payload, fallback) {
@@ -246,6 +262,7 @@ function formatApiError(error, fallback) {
 function CrearActivo() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [componentes, setComponentes] = useState(createEmptyComponentes)
+  const [componentesExtra, setComponentesExtra] = useState(createEmptyExtraComponentes)
   const [stockState, setStockState] = useState(EMPTY_STOCK_STATE)
   const [stockFilters, setStockFilters] = useState(EMPTY_STOCK_FILTERS)
   const [componentCatalogsLoaded, setComponentCatalogsLoaded] = useState(false)
@@ -468,11 +485,17 @@ function CrearActivo() {
         `No se pudieron cargar los modelos para ${componentKey}.`
       )
 
+      const modelosOptions = toSelectOptions(modelos)
+
       setComponentCatalogs((prev) => ({
         ...prev,
         [componentKey]: {
           ...prev[componentKey],
-          modelos: toSelectOptions(modelos)
+          modelos: modelosOptions,
+          modelosByMarca: {
+            ...prev[componentKey].modelosByMarca,
+            [marcaId]: modelosOptions
+          }
         }
       }))
     } catch (requestError) {
@@ -601,6 +624,83 @@ function CrearActivo() {
     })
 
     loadComponentModels(componentKey, definition.endpoint, marcaId)
+  }
+
+  const handleAgregarComponenteExtra = (componentKey) => {
+    if (componentKey !== 'ram' && componentKey !== 'disco') {
+      return
+    }
+
+    setComponentesExtra((prev) => ({
+      ...prev,
+      [componentKey]: [...prev[componentKey], createEmptyComponenteNuevo()]
+    }))
+  }
+
+  const handleComponenteExtraChange = (componentKey, index, field, value) => {
+    setComponentesExtra((prev) => ({
+      ...prev,
+      [componentKey]: prev[componentKey].map((item, itemIndex) =>
+        itemIndex === index
+          ? { ...item, [field]: value }
+          : item
+      )
+    }))
+
+    const errorKey = `${componentKey}.extra.${index}.${field}`
+    setErrors((prev) => {
+      if (!prev[errorKey]) {
+        return prev
+      }
+
+      const next = { ...prev }
+      delete next[errorKey]
+      return next
+    })
+  }
+
+  const handleComponenteExtraMarcaChange = (componentKey, index, marcaId) => {
+    const definition = COMPONENT_DEFINITIONS.find((item) => item.key === componentKey)
+    if (!definition) {
+      return
+    }
+
+    setComponentesExtra((prev) => ({
+      ...prev,
+      [componentKey]: prev[componentKey].map((item, itemIndex) =>
+        itemIndex === index
+          ? { ...item, marcaId, modeloId: '' }
+          : item
+      )
+    }))
+
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next[`${componentKey}.extra.${index}.marcaId`]
+      delete next[`${componentKey}.extra.${index}.modeloId`]
+      return next
+    })
+
+    loadComponentModels(componentKey, definition.endpoint, marcaId)
+  }
+
+  const handleQuitarComponenteExtra = (componentKey, index) => {
+    if (componentKey !== 'ram' && componentKey !== 'disco') {
+      return
+    }
+
+    setComponentesExtra((prev) => ({
+      ...prev,
+      [componentKey]: prev[componentKey].filter((_, itemIndex) => itemIndex !== index)
+    }))
+
+    setErrors((prev) => {
+      const next = { ...prev }
+      ;['marcaId', 'modeloId', 'numeroSerie', 'fechaCompra'].forEach((field) => {
+        delete next[`${componentKey}.extra.${index}.${field}`]
+      })
+      return next
+    })
   }
 
   const handleStockModeChange = (componentKey, mode) => {
@@ -749,6 +849,28 @@ function CrearActivo() {
           nextErrors[`${definition.key}.fechaCompra`] = `La fecha de compra de ${definition.payloadType} es obligatoria.`
         }
       })
+
+      ;['ram', 'disco'].forEach((componentKey) => {
+        componentesExtra[componentKey].forEach((item, index) => {
+          const payloadType = componentKey === 'ram' ? 'RAM' : 'DISCO'
+
+          if (!item.marcaId) {
+            nextErrors[`${componentKey}.extra.${index}.marcaId`] = `La marca de ${payloadType} adicional es obligatoria.`
+          }
+
+          if (!item.modeloId) {
+            nextErrors[`${componentKey}.extra.${index}.modeloId`] = `El modelo de ${payloadType} adicional es obligatorio.`
+          }
+
+          if (!item.numeroSerie.trim()) {
+            nextErrors[`${componentKey}.extra.${index}.numeroSerie`] = `El numero de serie de ${payloadType} adicional es obligatorio.`
+          }
+
+          if (!item.fechaCompra) {
+            nextErrors[`${componentKey}.extra.${index}.fechaCompra`] = `La fecha de compra de ${payloadType} adicional es obligatoria.`
+          }
+        })
+      })
     } else if (!form.numeroSerieGeneral.trim()) {
       nextErrors.numeroSerieGeneral = 'El numero de serie general es obligatorio para este tipo de activo.'
     }
@@ -778,6 +900,17 @@ function CrearActivo() {
           numeroSerie: componentes[definition.key].numeroSerie.trim(),
           fechaCompra: componentes[definition.key].fechaCompra
         }))
+
+      ;['ram', 'disco'].forEach((componentKey) => {
+        const payloadType = componentKey === 'ram' ? 'RAM' : 'DISCO'
+        const extras = componentesExtra[componentKey].map((item) => ({
+          tipo: payloadType,
+          modeloId: Number(item.modeloId),
+          numeroSerie: item.numeroSerie.trim(),
+          fechaCompra: item.fechaCompra
+        }))
+        payload.componentes.push(...extras)
+      })
 
       COMPONENT_DEFINITIONS
         .filter((definition) => stockState[definition.key].mode === 'disponible')
@@ -824,6 +957,7 @@ function CrearActivo() {
       setSuccess('Activo registrado correctamente.')
       setForm(EMPTY_FORM)
       setComponentes(createEmptyComponentes())
+      setComponentesExtra(createEmptyExtraComponentes())
       setStockState(EMPTY_STOCK_STATE)
       setStockFilters(EMPTY_STOCK_FILTERS)
       setOptions((prev) => ({ ...prev, tiposActivo: [], espacios: [] }))
@@ -863,11 +997,16 @@ function CrearActivo() {
         {isEscritorio && (
           <ComponentesEquipo
             componentes={componentes}
+            componentesExtra={componentesExtra}
             modelCatalogs={componentCatalogs}
             loading={loadingComponents}
             errors={errors}
             onChange={handleComponentChange}
             onMarcaChange={handleMarcaChange}
+            onExtraAdd={handleAgregarComponenteExtra}
+            onExtraChange={handleComponenteExtraChange}
+            onExtraMarcaChange={handleComponenteExtraMarcaChange}
+            onExtraRemove={handleQuitarComponenteExtra}
             stockState={stockState}
             stockFilters={stockFilters}
             onStockModeChange={handleStockModeChange}

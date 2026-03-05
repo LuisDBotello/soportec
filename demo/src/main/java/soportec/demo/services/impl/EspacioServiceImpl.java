@@ -35,4 +35,8 @@ public class EspacioServiceImpl implements EspacioService {
     public void deleteById(Integer id) {
         repository.deleteById(id);
     }
+
+    public List<Espacio> findByEdificioId(Integer idEdificio) {
+        return repository.findByEdificioId(idEdificio);
+    }
 }

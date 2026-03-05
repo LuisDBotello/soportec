@@ -91,11 +91,16 @@ function getModeloId(raw) {
 
 function ComponentesEquipo({
   componentes,
+  componentesExtra,
   modelCatalogs,
   loading,
   errors,
   onChange,
   onMarcaChange,
+  onExtraAdd,
+  onExtraChange,
+  onExtraMarcaChange,
+  onExtraRemove,
   stockState,
   stockFilters,
   onStockModeChange,
@@ -121,10 +126,16 @@ function ComponentesEquipo({
           const componentKey = definition.key
           const componentState = componentes[componentKey]
           const componentCatalog = modelCatalogs[componentKey]
-          const selectedModelo = componentCatalog.modelos.find((item) => item.value === componentState.modeloId)
+          const modelosByMarca = componentCatalog.modelosByMarca || {}
+          const modelosOptions = componentState.marcaId
+            ? modelosByMarca[componentState.marcaId] || componentCatalog.modelos
+            : []
+          const selectedModelo = modelosOptions.find((item) => item.value === componentState.modeloId)
           const stock = stockState[componentKey]
           const filters = stockFilters[componentKey]
           const isDisponible = stock.mode === 'disponible'
+          const allowsExtra = componentKey === 'ram' || componentKey === 'disco'
+          const extras = allowsExtra ? componentesExtra[componentKey] : []
 
           const filteredOptions = !isDisponible
             ? stock.options
@@ -250,7 +261,7 @@ function ComponentesEquipo({
                     label="Modelo"
                     value={componentState.modeloId}
                     onChange={(event) => onChange(componentKey, 'modeloId', event.target.value)}
-                    options={componentCatalog.modelos}
+                    options={modelosOptions}
                     loading={loading[componentKey]?.modelos}
                     disabled={!componentState.marcaId}
                     required
@@ -291,6 +302,99 @@ function ComponentesEquipo({
                 <p className="modelo-inline-resumen" title={modeloResumen}>
                   {modeloResumen}
                 </p>
+              )}
+
+              {allowsExtra && (
+                <div className="extra-componentes-wrap">
+                  {extras.map((extra, index) => {
+                    const extraModelosOptions = extra.marcaId
+                      ? modelosByMarca[extra.marcaId] || []
+                      : []
+                    const extraSelectedModelo = extraModelosOptions.find((item) => item.value === extra.modeloId)
+                    const extraResumen = buildModeloResumen(extraSelectedModelo?.raw)
+                    const cardNumber = index + 2
+
+                    return (
+                      <article
+                        key={`${componentKey}-extra-${index}`}
+                        className="component-card extra-component-card"
+                      >
+                        <div className="extra-card-header">
+                          <h4>{definition.label} adicional #{cardNumber}</h4>
+                          <button
+                            type="button"
+                            className="extra-remove-btn"
+                            onClick={() => onExtraRemove(componentKey, index)}
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                        <div className="asset-grid compact">
+                          <SelectField
+                            name={`${componentKey}.extra.${index}.marcaId`}
+                            label="Marca"
+                            value={extra.marcaId}
+                            onChange={(event) => onExtraMarcaChange(componentKey, index, event.target.value)}
+                            options={componentCatalog.marcas}
+                            loading={loading[componentKey]?.marcas}
+                            required
+                            placeholder="Selecciona una marca"
+                            error={errors[`${componentKey}.extra.${index}.marcaId`]}
+                          />
+
+                          <SelectField
+                            name={`${componentKey}.extra.${index}.modeloId`}
+                            label="Modelo"
+                            value={extra.modeloId}
+                            onChange={(event) => onExtraChange(componentKey, index, 'modeloId', event.target.value)}
+                            options={extraModelosOptions}
+                            loading={loading[componentKey]?.modelos}
+                            disabled={!extra.marcaId}
+                            required
+                            placeholder={extra.marcaId ? 'Selecciona un modelo' : 'Primero selecciona marca'}
+                            error={errors[`${componentKey}.extra.${index}.modeloId`]}
+                          />
+
+                          <InputField
+                            name={`${componentKey}.extra.${index}.numeroSerie`}
+                            label="Numero de serie"
+                            value={extra.numeroSerie}
+                            onChange={(event) => onExtraChange(componentKey, index, 'numeroSerie', event.target.value)}
+                            required
+                            maxLength={120}
+                            error={errors[`${componentKey}.extra.${index}.numeroSerie`]}
+                          />
+
+                          <InputField
+                            name={`${componentKey}.extra.${index}.fechaCompra`}
+                            label={`Fecha de compra ${definition.label}`}
+                            type="date"
+                            value={extra.fechaCompra || ''}
+                            onChange={(event) => onExtraChange(componentKey, index, 'fechaCompra', event.target.value)}
+                            required
+                            error={errors[`${componentKey}.extra.${index}.fechaCompra`]}
+                          />
+                        </div>
+
+                        {extraResumen && (
+                          <p className="modelo-inline-resumen" title={extraResumen}>
+                            {extraResumen}
+                          </p>
+                        )}
+                      </article>
+                    )
+                  })}
+
+                  <button
+                    type="button"
+                    className="extra-add-card"
+                    onClick={() => onExtraAdd(componentKey)}
+                    aria-label={`Agregar ${definition.label} adicional`}
+                    title={`Agregar ${definition.label} adicional`}
+                  >
+                    <span className="extra-add-plus"> Adicional + </span>
+                  </button>
+                </div>
               )}
             </article>
           )

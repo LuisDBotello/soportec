@@ -457,6 +457,87 @@ button:disabled {
   margin: 0 0 0.7rem;
 }
 
+.component-card h4 {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+  color: #214b79;
+}
+
+.extra-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.extra-card-header h4 {
+  margin: 0;
+}
+
+.extra-remove-btn {
+  border: 1px solid #d6a6a6;
+  background: #fff4f4;
+  color: #9b2b2b;
+  border-radius: 8px;
+  padding: 0.32rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.extra-remove-btn:hover {
+  background: #ffeaea;
+  border-color: #c77979;
+}
+
+.extra-componentes-wrap {
+  margin-top: 0.7rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.extra-component-card {
+  background: #f8fbff;
+}
+
+.extra-add-card {
+  width: 100%;
+  min-height: 56px;
+  border: 1px dashed #a9bfd9;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f6f9ff 0%, #eef5ff 100%);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.extra-add-card:hover {
+  border-color: #5a84b8;
+  background: linear-gradient(180deg, #eff5ff 0%, #e3eeff 100%);
+  box-shadow: 0 6px 16px rgba(45, 82, 125, 0.14);
+}
+
+.extra-add-plus {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #355577;
+  line-height: 1;
+}
+
+.extra-add-card:hover .extra-add-plus,
+.extra-add-card:focus-visible .extra-add-plus {
+  opacity: 1;
+}
+
+.extra-add-card:focus-visible {
+  outline: none;
+  border-color: #275d98;
+  box-shadow: 0 0 0 3px rgba(39, 93, 152, 0.2);
+}
+
 .modelo-details {
   margin-top: 0.55rem;
 }
