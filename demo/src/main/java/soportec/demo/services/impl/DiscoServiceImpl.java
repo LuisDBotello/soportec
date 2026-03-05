@@ -45,4 +45,8 @@ public class DiscoServiceImpl implements DiscoService {
     public Optional<Disco> findDisponibleById(Integer id) {
         return repository.findByIdDiscoAndActivoIsNull(id);
     }
+
+    public Integer getNextIdDisco() {
+        return repository.findMaxIdDisco() + 1;
+    }
 }

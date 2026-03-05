@@ -45,4 +45,8 @@ public class NicServiceImpl implements NicService {
     public Optional<Nic> findDisponibleById(Integer id) {
         return repository.findByIdNicAndActivoIsNull(id);
     }
+
+    public Integer getNextIdNic() {
+        return repository.findMaxIdNic() + 1;
+    }
 }

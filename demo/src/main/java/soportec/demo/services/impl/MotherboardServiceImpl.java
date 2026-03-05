@@ -45,4 +45,8 @@ public class MotherboardServiceImpl implements MotherboardService {
     public Optional<Motherboard> findDisponibleById(Integer id) {
         return repository.findByIdMotherboardAndActivoIsNull(id);
     }
+
+    public Integer getNextIdMotherboard() {
+        return repository.findMaxIdMotherboard() + 1;
+    }
 }

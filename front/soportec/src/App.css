@@ -580,6 +580,56 @@ button:disabled {
 .asset-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+}
+
+.desktop-package-actions {
+  justify-content: flex-start;
+  margin-top: 1rem;
+}
+
+.desktop-package-btn {
+  min-height: 40px;
+  padding: 0.62rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  box-shadow: 0 5px 14px rgba(18, 42, 67, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.desktop-package-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(18, 42, 67, 0.16);
+}
+
+.desktop-package-btn.save {
+  background: linear-gradient(180deg, #356fa9 0%, #245a95 100%);
+  color: #fff;
+}
+
+.desktop-package-btn.save:hover {
+  background: linear-gradient(180deg, #2f669d 0%, #204f84 100%);
+}
+
+.desktop-package-btn.load {
+  background: #eef4fb;
+  color: #1f456f;
+  border-color: #bdd1e7;
+}
+
+.desktop-package-btn.load:hover {
+  background: #e5eef9;
+}
+
+.desktop-package-btn.create {
+  background: linear-gradient(180deg, #1f8a58 0%, #187247 100%);
+  color: #fff;
+}
+
+.desktop-package-btn.create:hover {
+  background: linear-gradient(180deg, #1b7b4f 0%, #14633d 100%);
 }
 
 @media (max-width: 980px) {

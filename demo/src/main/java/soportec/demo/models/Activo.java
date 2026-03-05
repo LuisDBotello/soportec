@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -22,6 +24,7 @@ import lombok.Setter;
 public class Activo {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_activo")
     private Integer idActivo;
 
@@ -30,6 +33,14 @@ public class Activo {
 
     @Column(name = "modelo", nullable = true, length = 100)
     private String modelo;
+
+    @ManyToOne
+    @JoinColumn(name = "id_marca_activo")
+    private MarcaActivo marcaActivo;
+
+    @ManyToOne
+    @JoinColumn(name = "id_modelo_activo")
+    private ModeloActivo modeloActivo;
 
     @Column(name = "numero_serie", nullable = false, length = 100)
     private String numeroSerie;

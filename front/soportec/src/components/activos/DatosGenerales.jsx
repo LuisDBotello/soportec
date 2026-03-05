@@ -61,6 +61,35 @@ function DatosGenerales({
         />
 
         {!isEscritorio && (
+          <SelectField
+            name="marcaGeneralId"
+            label="Marca"
+            value={form.marcaGeneral}
+            onChange={onChange}
+            options={options.marcasActivo}
+            required
+            loading={loading.marcasActivo}
+            error={errors.marcaGeneral}
+            placeholder="Selecciona una marca"
+          />
+        )}
+
+        {!isEscritorio && (
+          <SelectField
+            name="modeloGeneralId"
+            label="Modelo"
+            value={form.modeloGeneral}
+            onChange={onChange}
+            options={options.modelosActivo}
+            required
+            loading={loading.modelosActivo}
+            disabled={!form.marcaGeneral}
+            error={errors.modeloGeneral}
+            placeholder={form.marcaGeneral ? 'Selecciona un modelo' : 'Primero selecciona marca'}
+          />
+        )}
+
+        {!isEscritorio && (
           <InputField
             name="numeroSerieGeneral"
             label="Numero de serie general"

@@ -2,14 +2,19 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import DatosGenerales from './DatosGenerales'
 import ComponentesEquipo from './ComponentesEquipo'
 import UbicacionSection from './UbicacionSection'
+import InputField from '../fields/InputField'
+import SelectField from '../fields/SelectField'
 
 const API_URL = import.meta.env.VITE_API_URL
+const DESKTOP_PACKAGES_STORAGE_KEY = 'soportec.desktop.packages.v1'
 
 const EMPTY_FORM = {
   categoriaId: '',
   tipoActivoId: '',
   fechaCompra: '',
   estadoId: '',
+  marcaGeneral: '',
+  modeloGeneral: '',
   numeroSerieGeneral: '',
   edificioId: '',
   espacioId: ''
@@ -116,6 +121,8 @@ function extractId(item) {
     item?.idModeloCpu,
     item?.idMarcaRam,
     item?.idModeloRam,
+    item?.idMarcaActivo,
+    item?.idModeloActivo,
     item?.idMarcaDisco,
     item?.idModeloDisco,
     item?.idMarcaMb,
@@ -259,6 +266,35 @@ function formatApiError(error, fallback) {
   return fallback
 }
 
+function normalizeDateToken(value) {
+  if (!value) {
+    return 'SINFECHA'
+  }
+
+  return String(value).replaceAll(/[^0-9]/g, '').slice(0, 12) || 'SINFECHA'
+}
+
+function buildGenericSerial(prefix, dateToken, equipoIndex, componentIndex = 1) {
+  return `${prefix}-${dateToken}-EQ${String(equipoIndex + 1).padStart(3, '0')}-C${String(componentIndex).padStart(2, '0')}`
+}
+
+function loadDesktopPackages() {
+  try {
+    const raw = localStorage.getItem(DESKTOP_PACKAGES_STORAGE_KEY)
+    if (!raw) {
+      return []
+    }
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function persistDesktopPackages(packages) {
+  localStorage.setItem(DESKTOP_PACKAGES_STORAGE_KEY, JSON.stringify(packages))
+}
+
 function CrearActivo() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [componentes, setComponentes] = useState(createEmptyComponentes)
@@ -272,7 +308,9 @@ function CrearActivo() {
     tiposActivo: [],
     estados: [],
     edificios: [],
-    espacios: []
+    espacios: [],
+    marcasActivo: [],
+    modelosActivo: []
   })
 
   const [componentCatalogs, setComponentCatalogs] = useState(EMPTY_MODEL_CATALOGS)
@@ -283,6 +321,8 @@ function CrearActivo() {
     estados: false,
     edificios: false,
     espacios: false,
+    marcasActivo: false,
+    modelosActivo: false,
     submit: false
   })
   const [loadingComponents, setLoadingComponents] = useState(EMPTY_LOADING_COMPONENTS)
@@ -290,6 +330,10 @@ function CrearActivo() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [errors, setErrors] = useState({})
+  const [desktopPackages, setDesktopPackages] = useState([])
+  const [selectedDesktopPackageId, setSelectedDesktopPackageId] = useState('')
+  const [desktopPackageName, setDesktopPackageName] = useState('')
+  const [bulkDesktopCount, setBulkDesktopCount] = useState('1')
 
   const tipoSeleccionado = useMemo(
     () => options.tiposActivo.find((tipo) => tipo.value === form.tipoActivoId),
@@ -297,6 +341,10 @@ function CrearActivo() {
   )
 
   const isEscritorio = useMemo(() => isDesktopType(tipoSeleccionado), [tipoSeleccionado])
+
+  useEffect(() => {
+    setDesktopPackages(loadDesktopPackages())
+  }, [])
 
   const fetchJson = useCallback(async (path, fallbackMessage) => {
     const response = await fetch(`${API_URL}${path}`)
@@ -391,6 +439,59 @@ function CrearActivo() {
       setError(formatApiError(requestError, 'Error al cargar espacios.'))
     } finally {
       setLoading((prev) => ({ ...prev, espacios: false }))
+    }
+  }, [fetchJson])
+
+  const loadMarcasActivoByTipo = useCallback(async (tipoActivoId) => {
+    if (!tipoActivoId) {
+      setOptions((prev) => ({ ...prev, marcasActivo: [], modelosActivo: [] }))
+      return
+    }
+
+    setLoading((prev) => ({ ...prev, marcasActivo: true }))
+    setError('')
+
+    try {
+      const marcas = await fetchJson(
+        `/activos/marcas?tipoActivo=${encodeURIComponent(tipoActivoId)}`,
+        'No se pudieron cargar las marcas del tipo de activo.'
+      )
+
+      setOptions((prev) => ({
+        ...prev,
+        marcasActivo: toSelectOptions(marcas),
+        modelosActivo: []
+      }))
+    } catch (requestError) {
+      setError(formatApiError(requestError, 'Error al cargar marcas de activo.'))
+    } finally {
+      setLoading((prev) => ({ ...prev, marcasActivo: false }))
+    }
+  }, [fetchJson])
+
+  const loadModelosActivoByMarca = useCallback(async (marcaActivoId) => {
+    if (!marcaActivoId) {
+      setOptions((prev) => ({ ...prev, modelosActivo: [] }))
+      return
+    }
+
+    setLoading((prev) => ({ ...prev, modelosActivo: true }))
+    setError('')
+
+    try {
+      const modelos = await fetchJson(
+        `/activos/modelos?marca=${encodeURIComponent(marcaActivoId)}`,
+        'No se pudieron cargar los modelos de la marca.'
+      )
+
+      setOptions((prev) => ({
+        ...prev,
+        modelosActivo: toSelectOptions(modelos)
+      }))
+    } catch (requestError) {
+      setError(formatApiError(requestError, 'Error al cargar modelos de activo.'))
+    } finally {
+      setLoading((prev) => ({ ...prev, modelosActivo: false }))
     }
   }, [fetchJson])
 
@@ -521,6 +622,15 @@ function CrearActivo() {
   }, [form.edificioId, loadEspaciosByEdificio])
 
   useEffect(() => {
+    if (!form.tipoActivoId || isEscritorio) {
+      setOptions((prev) => ({ ...prev, marcasActivo: [], modelosActivo: [] }))
+      return
+    }
+
+    loadMarcasActivoByTipo(form.tipoActivoId)
+  }, [form.tipoActivoId, isEscritorio, loadMarcasActivoByTipo])
+
+  useEffect(() => {
     if (isEscritorio) {
       if (componentCatalogsLoaded) {
         return
@@ -553,9 +663,58 @@ function CrearActivo() {
       setForm((prev) => ({
         ...prev,
         categoriaId: value,
-        tipoActivoId: ''
+        tipoActivoId: '',
+        marcaGeneral: '',
+        modeloGeneral: ''
       }))
-      setOptions((prev) => ({ ...prev, tiposActivo: [] }))
+      setOptions((prev) => ({ ...prev, tiposActivo: [], marcasActivo: [], modelosActivo: [] }))
+      return
+    }
+
+    if (name === 'tipoActivoId') {
+      setForm((prev) => ({
+        ...prev,
+        tipoActivoId: value,
+        marcaGeneral: '',
+        modeloGeneral: ''
+      }))
+      setOptions((prev) => ({ ...prev, marcasActivo: [], modelosActivo: [] }))
+
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.marcaGeneral
+        delete next.modeloGeneral
+        return next
+      })
+      return
+    }
+
+    if (name === 'marcaGeneralId') {
+      setForm((prev) => ({
+        ...prev,
+        marcaGeneral: value,
+        modeloGeneral: ''
+      }))
+      setOptions((prev) => ({ ...prev, modelosActivo: [] }))
+      loadModelosActivoByMarca(value)
+
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.marcaGeneral
+        delete next.modeloGeneral
+        return next
+      })
+      return
+    }
+
+    if (name === 'modeloGeneralId') {
+      setForm((prev) => ({ ...prev, modeloGeneral: value }))
+
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.modeloGeneral
+        return next
+      })
       return
     }
 
@@ -871,12 +1030,57 @@ function CrearActivo() {
           }
         })
       })
-    } else if (!form.numeroSerieGeneral.trim()) {
-      nextErrors.numeroSerieGeneral = 'El numero de serie general es obligatorio para este tipo de activo.'
+    } else {
+      if (!form.marcaGeneral) {
+        nextErrors.marcaGeneral = 'La marca es obligatoria para este tipo de activo.'
+      }
+
+      if (!form.modeloGeneral) {
+        nextErrors.modeloGeneral = 'El modelo es obligatorio para este tipo de activo.'
+      }
+
+      if (!form.numeroSerieGeneral.trim()) {
+        nextErrors.numeroSerieGeneral = 'El numero de serie general es obligatorio para este tipo de activo.'
+      }
     }
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
+  }
+
+  const validateDesktopBatch = () => {
+    if (!isEscritorio) {
+      return 'La creacion en lote aplica solo a tipo ESCRITORIO.'
+    }
+
+    if (!form.categoriaId || !form.tipoActivoId || !form.fechaCompra || !form.estadoId) {
+      return 'Completa categoria, tipo de activo, fecha de armado y estado.'
+    }
+
+    for (const definition of COMPONENT_DEFINITIONS) {
+      const componentKey = definition.key
+      if (stockState[componentKey].mode === 'disponible') {
+        if (!stockState[componentKey].selectedId) {
+          return `Selecciona un ${definition.payloadType} disponible.`
+        }
+        continue
+      }
+
+      const value = componentes[componentKey]
+      if (!value.marcaId || !value.modeloId || !value.fechaCompra) {
+        return `Completa marca, modelo y fecha de compra para ${definition.payloadType}.`
+      }
+    }
+
+    for (const componentKey of ['ram', 'disco']) {
+      for (const item of componentesExtra[componentKey]) {
+        if (!item.marcaId || !item.modeloId || !item.fechaCompra) {
+          return `Completa marca, modelo y fecha en componentes adicionales de ${componentKey.toUpperCase()}.`
+        }
+      }
+    }
+
+    return ''
   }
 
   const buildPayload = () => {
@@ -918,11 +1122,166 @@ function CrearActivo() {
           payload[definition.disponibleField] = Number(stockState[definition.key].selectedId)
         })
     } else {
+      const marcaSeleccionada = options.marcasActivo.find((item) => item.value === form.marcaGeneral)
+      const modeloSeleccionado = options.modelosActivo.find((item) => item.value === form.modeloGeneral)
+
       payload.componentes = []
+      payload.marcaActivoId = Number(form.marcaGeneral)
+      payload.modeloActivoId = Number(form.modeloGeneral)
+      payload.marca = marcaSeleccionada?.label || ''
+      payload.modelo = modeloSeleccionado?.label || ''
       payload.numeroSerie = form.numeroSerieGeneral.trim()
     }
 
     return payload
+  }
+
+  const buildDesktopPayloadWithGenericSerials = (equipoIndex) => {
+    const dateToken = normalizeDateToken(form.fechaCompra)
+    const payload = {
+      categoriaId: Number(form.categoriaId),
+      tipoActivoId: Number(form.tipoActivoId),
+      fechaCompra: form.fechaCompra,
+      estadoId: Number(form.estadoId),
+      componentes: []
+    }
+
+    if (form.espacioId) {
+      payload.ubicacionId = Number(form.espacioId)
+    }
+
+    COMPONENT_DEFINITIONS
+      .filter((definition) => stockState[definition.key].mode !== 'disponible')
+      .forEach((definition) => {
+        payload.componentes.push({
+          tipo: definition.payloadType,
+          modeloId: Number(componentes[definition.key].modeloId),
+          numeroSerie: buildGenericSerial(definition.payloadType, dateToken, equipoIndex, 1),
+          fechaCompra: componentes[definition.key].fechaCompra
+        })
+      })
+
+    ;['ram', 'disco'].forEach((componentKey) => {
+      const payloadType = componentKey === 'ram' ? 'RAM' : 'DISCO'
+      componentesExtra[componentKey].forEach((item, extraIndex) => {
+        payload.componentes.push({
+          tipo: payloadType,
+          modeloId: Number(item.modeloId),
+          numeroSerie: buildGenericSerial(payloadType, dateToken, equipoIndex, extraIndex + 2),
+          fechaCompra: item.fechaCompra
+        })
+      })
+    })
+
+    COMPONENT_DEFINITIONS
+      .filter((definition) => stockState[definition.key].mode === 'disponible')
+      .forEach((definition) => {
+        payload[definition.disponibleField] = Number(stockState[definition.key].selectedId)
+      })
+
+    return payload
+  }
+
+  const handleGuardarDesktopPackage = () => {
+    if (!isEscritorio) {
+      setError('Los paquetes solo se pueden guardar para tipo ESCRITORIO.')
+      return
+    }
+
+    const name = desktopPackageName.trim()
+    if (!name) {
+      setError('Ingresa un nombre para el paquete.')
+      return
+    }
+
+    const now = new Date().toISOString()
+    const pack = {
+      id: `pkg-${Date.now()}`,
+      name,
+      createdAt: now,
+      snapshot: {
+        componentes,
+        componentesExtra,
+        stockState
+      }
+    }
+
+    const next = [pack, ...desktopPackages.filter((item) => item.name !== name)]
+    setDesktopPackages(next)
+    persistDesktopPackages(next)
+    setSelectedDesktopPackageId(pack.id)
+    setSuccess(`Paquete "${name}" guardado.`)
+    setError('')
+  }
+
+  const handleAplicarDesktopPackage = () => {
+    const selected = desktopPackages.find((item) => item.id === selectedDesktopPackageId)
+    if (!selected) {
+      setError('Selecciona un paquete para cargar.')
+      return
+    }
+
+    const snapshot = selected.snapshot
+    setComponentes(snapshot.componentes || createEmptyComponentes())
+    setComponentesExtra(snapshot.componentesExtra || createEmptyExtraComponentes())
+    setStockState(snapshot.stockState || EMPTY_STOCK_STATE)
+    setSuccess(`Paquete "${selected.name}" cargado.`)
+    setError('')
+  }
+
+  const handleCrearLoteEscritorio = async () => {
+    setError('')
+    setSuccess('')
+
+    const validationError = validateDesktopBatch()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    const count = Number(bulkDesktopCount)
+    if (!Number.isInteger(count) || count < 1 || count > 200) {
+      setError('La cantidad debe ser un entero entre 1 y 200.')
+      return
+    }
+
+    setLoading((prev) => ({ ...prev, submit: true }))
+    let ok = 0
+    const errorsBatch = []
+
+    try {
+      for (let index = 0; index < count; index += 1) {
+        const payload = buildDesktopPayloadWithGenericSerials(index)
+        const response = await fetch(`${API_URL}/activos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+
+        let responsePayload = null
+        try {
+          responsePayload = await response.json()
+        } catch {
+          responsePayload = null
+        }
+
+        if (!response.ok) {
+          errorsBatch.push(`#${index + 1}: ${parseResponseError(responsePayload, 'No se pudo registrar el activo.')}`)
+          continue
+        }
+        ok += 1
+      }
+
+      if (errorsBatch.length > 0) {
+        setError(`Lote parcial. Exitos: ${ok}, errores: ${errorsBatch.length}. ${errorsBatch[0]}`)
+      } else {
+        setSuccess(`Lote creado correctamente. Equipos registrados: ${ok}.`)
+      }
+    } catch (requestError) {
+      setError(formatApiError(requestError, 'Error al registrar lote de activos.'))
+    } finally {
+      setLoading((prev) => ({ ...prev, submit: false }))
+    }
   }
 
   const handleSubmit = async (event) => {
@@ -937,7 +1296,7 @@ function CrearActivo() {
     setLoading((prev) => ({ ...prev, submit: true }))
 
     try {
-      const response = await fetch(`${API_URL}/api/activos`, {
+      const response = await fetch(`${API_URL}/activos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(buildPayload())
@@ -983,12 +1342,16 @@ function CrearActivo() {
           options={{
             categorias: options.categorias,
             tiposActivo: options.tiposActivo,
-            estados: options.estados
+            estados: options.estados,
+            marcasActivo: options.marcasActivo,
+            modelosActivo: options.modelosActivo
           }}
           loading={{
             categorias: loading.categorias,
             tiposActivo: loading.tiposActivo,
-            estados: loading.estados
+            estados: loading.estados,
+            marcasActivo: loading.marcasActivo,
+            modelosActivo: loading.modelosActivo
           }}
           isEscritorio={isEscritorio}
           onChange={handleGeneralChange}
@@ -1014,6 +1377,60 @@ function CrearActivo() {
             onStockMarcaFilterChange={handleStockMarcaFilterChange}
             onStockModeloFilterChange={handleStockModeloFilterChange}
           />
+        )}
+
+        {isEscritorio && (
+          <section className="asset-section">
+            <h2>Paquetes de Escritorio</h2>
+            <p className="asset-section-help">Guarda y reutiliza configuraciones para alta masiva.</p>
+            <div className="asset-grid compact">
+              <InputField
+                name="desktopPackageName"
+                label="Nombre del paquete"
+                value={desktopPackageName}
+                onChange={(event) => setDesktopPackageName(event.target.value)}
+                maxLength={80}
+                placeholder="Ej. Oficina Dell i5"
+              />
+
+              <SelectField
+                name="selectedDesktopPackageId"
+                label="Paquete guardado"
+                value={selectedDesktopPackageId}
+                onChange={(event) => setSelectedDesktopPackageId(event.target.value)}
+                options={desktopPackages.map((item) => ({ value: item.id, label: item.name }))}
+                placeholder="Selecciona un paquete"
+              />
+
+              <InputField
+                name="bulkDesktopCount"
+                label="Cantidad de escritorios"
+                type="number"
+                value={bulkDesktopCount}
+                onChange={(event) => setBulkDesktopCount(event.target.value)}
+                min={1}
+                max={200}
+                required
+              />
+            </div>
+
+            <div className="asset-actions desktop-package-actions">
+              <button type="button" className="desktop-package-btn save" onClick={handleGuardarDesktopPackage}>
+                Guardar paquete
+              </button>
+              <button type="button" className="desktop-package-btn load" onClick={handleAplicarDesktopPackage}>
+                Cargar paquete
+              </button>
+              <button
+                type="button"
+                className="desktop-package-btn create"
+                onClick={handleCrearLoteEscritorio}
+                disabled={loading.submit}
+              >
+                {loading.submit ? 'Creando lote...' : 'Crear lote de escritorios'}
+              </button>
+            </div>
+          </section>
         )}
 
         <UbicacionSection

@@ -45,4 +45,8 @@ public class RamServiceImpl implements RamService {
     public Optional<Ram> findDisponibleById(Integer id) {
         return repository.findByIdRamAndActivoIsNull(id);
     }
+
+    public Integer getNextIdRam() {
+        return repository.findMaxIdRam() + 1;
+    }
 }
