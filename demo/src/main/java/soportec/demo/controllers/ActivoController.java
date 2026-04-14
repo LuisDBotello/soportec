@@ -43,4 +43,9 @@ public class ActivoController {
     public ResponseEntity<?> createActivo(@RequestBody DtoActivoCreateReq request) {
         return activoServiceImpl.createActivo(request);
     }
+
+    @GetMapping("/por-espacio")
+    public ResponseEntity<?> getActivosByEspacio(@RequestParam("espacioId") Integer espacioId) {
+        return ResponseEntity.ok(activoServiceImpl.findByEspacioId(espacioId));
+    }
 }

@@ -22,6 +22,21 @@ public class OrdenServiceImpl implements OrdenService {
     }
 
     @Override
+    public List<Orden> findAllByFechaCreacionAsc() {
+        return repository.findAllByFechaCreacionAsc();
+    }
+
+    @Override
+    public List<Orden> findByTecnicoAsignado(Integer tecnicoId) {
+        return repository.findByTecnicoAsignado(tecnicoId);
+    }
+
+    @Override
+    public List<Orden> findBySolicitante(Integer solicitanteId) {
+        return repository.findBySolicitante(solicitanteId);
+    }
+
+    @Override
     public Optional<Orden> findById(Integer id) {
         return repository.findById(id);
     }
@@ -34,5 +49,10 @@ public class OrdenServiceImpl implements OrdenService {
     @Override
     public void deleteById(Integer id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public Integer getNextFolio() {
+        return repository.findMaxFolio() + 1;
     }
 }

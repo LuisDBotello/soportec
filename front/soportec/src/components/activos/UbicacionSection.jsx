@@ -3,7 +3,7 @@ import SelectField from '../fields/SelectField'
 function UbicacionSection({ form, options, loading, errors, onChange }) {
   return (
     <section className="asset-section">
-      <h2>Ubicacion (opcional)</h2>
+      <h2>Ubicacion</h2>
       <div className="asset-grid">
         <SelectField
           name="edificioId"

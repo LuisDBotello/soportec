@@ -13,4 +13,6 @@ public interface EventoService {
     Evento save(Evento entity);
 
     void deleteById(Integer id);
+
+    Integer getNextId();
 }

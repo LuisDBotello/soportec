@@ -2,12 +2,25 @@
 
 const API_URL = `${import.meta.env.VITE_API_URL}/users`;
 
+const NIVELES = [
+  { id: 1, nombre: 'JEFE DE TALLER' },
+  { id: 2, nombre: 'TECNICO' },
+  { id: 3, nombre: 'RESPONSABLE DE AREA' }
+]
+
+const DEPARTAMENTOS = [
+  { id: 3, nombre: 'CONTROL ESCOLAR' },
+  { id: 4, nombre: 'SISTEMAS Y COMPUTACION' },
+  { id: 5, nombre: 'SOPORTE TÉCNICO' }
+]
+
 const EMPTY_FORM = {
   nombre: '',
   apellidoP: '',
   apellidoM: '',
   correo: '',
   username: '',
+  contraseña: '',
   departamentoId: '',
   nivelId: ''
 }
@@ -66,9 +79,7 @@ function UserCrud() {
       apellidoM: form.apellidoM.trim() || null,
       correo: form.correo.trim() || null,
       username: form.username.trim() || null,
-      passwordHash: form.passwordHash.trim() || null,
-      esJefeDepto: Boolean(form.esJefeDepto),
-      nivel: form.nivel.trim()
+      contraseña: form.contraseña.trim() || null
     }
 
     if (form.departamentoId) {
@@ -76,7 +87,7 @@ function UserCrud() {
     }
 
     if (form.nivelId) {
-      payload.nivel = { idNivel: Number(form.nivelId) }
+      payload.nivel = { id_nivel: Number(form.nivelId) }
     }
     return payload
   }
@@ -119,6 +130,7 @@ function UserCrud() {
       apellidoM: user.apellidoM || '',
       correo: user.correo || '',
       username: user.username || '',
+      contraseña: user.contraseña || '',
       departamentoId: String(user.departamento?.idDepartamento || ''),
       nivelId: String(user.nivel?.id_nivel || '')
     })
@@ -182,21 +194,31 @@ function UserCrud() {
               Username
               <input name="username" value={form.username} onChange={handleChange} maxLength={50} />
             </label>
+            <label>
+              Contraseña
+              <input name="contraseña" value={form.contraseña} onChange={handleChange} maxLength={50} />
+            </label>
             
             <label>
-              ID departamento
-              <input name="departamentoId" type="number" min="1" value={form.departamentoId} onChange={handleChange} required />
+              Departamento
+              <select name="departamentoId" value={form.departamentoId} onChange={handleChange}>
+                {DEPARTAMENTOS.map((depto) => (
+                  <option key={depto.id} value={depto.id}>
+                    {depto.nombre}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
-              ID Nivel
-              <input
-                name="nivelId"
-                type="number"
-                min="1"
-                value={form.nivelId}
-                onChange={handleChange}
-                required
-              />
+              Nivel
+              <select name="nivelId" value={form.nivelId} onChange={handleChange} required>
+                <option value="">Selecciona un nivel</option>
+                {NIVELES.map((nivel) => (
+                  <option key={nivel.id} value={nivel.id}>
+                    {nivel.nombre}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <div className="users-actions">

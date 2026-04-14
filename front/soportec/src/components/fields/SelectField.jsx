@@ -9,8 +9,14 @@ function SelectField({
   required = false,
   disabled = false,
   loading = false,
-  error
+  error,
+  multiple = false,
+  size
 }) {
+  const selectValue = multiple
+    ? (Array.isArray(value) ? value : [])
+    : (value || '')
+
   return (
     <label className="form-field" htmlFor={id || name}>
       <span>
@@ -20,14 +26,18 @@ function SelectField({
       <select
         id={id || name}
         name={name}
-        value={value || ''}
+        value={selectValue}
         onChange={onChange}
         required={required}
         disabled={disabled || loading}
+        multiple={multiple}
+        size={size}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${name}-error` : undefined}
       >
-        <option value="">{loading ? 'Cargando...' : placeholder}</option>
+        {!multiple && (
+          <option value="">{loading ? 'Cargando...' : placeholder}</option>
+        )}
 
         {(options || []).map((option) => (
           <option key={option.value} value={option.value}>

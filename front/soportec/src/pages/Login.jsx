@@ -2,6 +2,9 @@ import { useState } from 'react'
 import BrandPanel from '../components/BrandPanel'
 import LoginForm from '../components/LoginForm'
 
+const LOGIN_URL = `${String(import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '')}/login`
+const SESSION_USER_KEY = 'soportec.auth.user'
+
 const INITIAL_VALUES = {
   username: '',
   password: ''
@@ -17,17 +20,43 @@ function Login() {
     setValues((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setIsLoading(true)
     setError('')
 
-    window.setTimeout(() => {
-      if (!values.username.trim() || !values.password.trim()) {
-        setError('Captura usuario y contrasena para continuar.')
-      }
+    if (!values.username.trim() || !values.password.trim()) {
+      setError('Captura usuario y contrasena para continuar.')
       setIsLoading(false)
-    }, 500)
+      return
+    }
+
+    try {
+      const response = await fetch(LOGIN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: values.username.trim(),
+          password: values.password
+        })
+      })
+
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(data?.message || 'No se pudo validar el acceso.')
+      }
+
+      if (!data?.user?.nivel?.id_nivel) {
+        throw new Error('Respuesta de login incompleta: no se encontro el nivel de usuario.')
+      }
+
+      window.sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(data.user))
+      window.location.hash = '/bienvenida'
+    } catch (err) {
+      setError(err.message || 'Error de autenticacion.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

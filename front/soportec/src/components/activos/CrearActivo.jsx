@@ -111,6 +111,7 @@ function extractId(item) {
   const candidates = [
     item?.id,
     item?.value,
+    item?.idSoftware,
     item?.idCategoriaActivo,
     item?.idCategoria,
     item?.idTipoActivo,
@@ -310,7 +311,8 @@ function CrearActivo() {
     edificios: [],
     espacios: [],
     marcasActivo: [],
-    modelosActivo: []
+    modelosActivo: [],
+    software: []
   })
 
   const [componentCatalogs, setComponentCatalogs] = useState(EMPTY_MODEL_CATALOGS)
@@ -323,6 +325,7 @@ function CrearActivo() {
     espacios: false,
     marcasActivo: false,
     modelosActivo: false,
+    software: false,
     submit: false
   })
   const [loadingComponents, setLoadingComponents] = useState(EMPTY_LOADING_COMPONENTS)
@@ -334,6 +337,8 @@ function CrearActivo() {
   const [selectedDesktopPackageId, setSelectedDesktopPackageId] = useState('')
   const [desktopPackageName, setDesktopPackageName] = useState('')
   const [bulkDesktopCount, setBulkDesktopCount] = useState('1')
+  const [selectedSoftwareIds, setSelectedSoftwareIds] = useState([])
+  const [softwareSearchTerm, setSoftwareSearchTerm] = useState('')
 
   const tipoSeleccionado = useMemo(
     () => options.tiposActivo.find((tipo) => tipo.value === form.tipoActivoId),
@@ -341,6 +346,23 @@ function CrearActivo() {
   )
 
   const isEscritorio = useMemo(() => isDesktopType(tipoSeleccionado), [tipoSeleccionado])
+  const filteredSoftwareOptions = useMemo(() => {
+    const term = softwareSearchTerm.trim().toLowerCase()
+    if (!term) {
+      return options.software
+    }
+    return options.software.filter((option) =>
+      String(option.label || '').toLowerCase().includes(term)
+    )
+  }, [options.software, softwareSearchTerm])
+  const selectedSoftwareOptions = useMemo(() => {
+    const selectedIds = new Set(selectedSoftwareIds.map((id) => String(id)))
+    return options.software.filter((option) => selectedIds.has(String(option.value)))
+  }, [options.software, selectedSoftwareIds])
+  const availableSoftwareOptions = useMemo(() => {
+    const selectedIds = new Set(selectedSoftwareIds.map((id) => String(id)))
+    return filteredSoftwareOptions.filter((option) => !selectedIds.has(String(option.value)))
+  }, [filteredSoftwareOptions, selectedSoftwareIds])
 
   useEffect(() => {
     setDesktopPackages(loadDesktopPackages())
@@ -495,6 +517,29 @@ function CrearActivo() {
     }
   }, [fetchJson])
 
+  const loadSoftwareCatalog = useCallback(async () => {
+    setLoading((prev) => ({ ...prev, software: true }))
+    setError('')
+
+    try {
+      const software = await fetchJson('/software', 'No se pudo cargar el catalogo de software.')
+
+      setOptions((prev) => ({
+        ...prev,
+        software: toSelectOptions(software).map((option) => ({
+          ...option,
+          label: option.raw?.vers
+            ? `${option.label} (${option.raw.vers})`
+            : option.label
+        }))
+      }))
+    } catch (requestError) {
+      setError(formatApiError(requestError, 'Error al cargar software.'))
+    } finally {
+      setLoading((prev) => ({ ...prev, software: false }))
+    }
+  }, [fetchJson])
+
   const loadComponentBrands = useCallback(async () => {
     setError('')
 
@@ -637,6 +682,7 @@ function CrearActivo() {
       }
       loadComponentBrands()
       loadDisponiblesByComponent()
+      loadSoftwareCatalog()
       setComponentCatalogsLoaded(true)
       return
     }
@@ -644,7 +690,23 @@ function CrearActivo() {
     setComponentCatalogsLoaded(false)
     setStockState(EMPTY_STOCK_STATE)
     setStockFilters(EMPTY_STOCK_FILTERS)
-  }, [isEscritorio, componentCatalogsLoaded, loadComponentBrands, loadDisponiblesByComponent])
+    setSelectedSoftwareIds([])
+    setSoftwareSearchTerm('')
+    setOptions((prev) => ({ ...prev, software: [] }))
+  }, [isEscritorio, componentCatalogsLoaded, loadComponentBrands, loadDisponiblesByComponent, loadSoftwareCatalog])
+
+  const handleAgregarSoftware = (softwareId) => {
+    setSelectedSoftwareIds((prev) => {
+      if (!softwareId || prev.some((id) => String(id) === String(softwareId))) {
+        return prev
+      }
+      return [...prev, softwareId]
+    })
+  }
+
+  const handleQuitarSoftware = (softwareId) => {
+    setSelectedSoftwareIds((prev) => prev.filter((id) => String(id) !== String(softwareId)))
+  }
 
   const handleGeneralChange = (event) => {
     const { name, value } = event.target
@@ -1096,6 +1158,8 @@ function CrearActivo() {
     }
 
     if (isEscritorio) {
+      payload.softwareIds = selectedSoftwareIds.map((id) => Number(id))
+
       payload.componentes = COMPONENT_DEFINITIONS
         .filter((definition) => stockState[definition.key].mode !== 'disponible')
         .map((definition) => ({
@@ -1143,7 +1207,8 @@ function CrearActivo() {
       tipoActivoId: Number(form.tipoActivoId),
       fechaCompra: form.fechaCompra,
       estadoId: Number(form.estadoId),
-      componentes: []
+      componentes: [],
+      softwareIds: selectedSoftwareIds.map((id) => Number(id))
     }
 
     if (form.espacioId) {
@@ -1202,7 +1267,8 @@ function CrearActivo() {
       snapshot: {
         componentes,
         componentesExtra,
-        stockState
+        stockState,
+        selectedSoftwareIds
       }
     }
 
@@ -1225,6 +1291,7 @@ function CrearActivo() {
     setComponentes(snapshot.componentes || createEmptyComponentes())
     setComponentesExtra(snapshot.componentesExtra || createEmptyExtraComponentes())
     setStockState(snapshot.stockState || EMPTY_STOCK_STATE)
+    setSelectedSoftwareIds(snapshot.selectedSoftwareIds || [])
     setSuccess(`Paquete "${selected.name}" cargado.`)
     setError('')
   }
@@ -1319,6 +1386,8 @@ function CrearActivo() {
       setComponentesExtra(createEmptyExtraComponentes())
       setStockState(EMPTY_STOCK_STATE)
       setStockFilters(EMPTY_STOCK_FILTERS)
+      setSelectedSoftwareIds([])
+      setSoftwareSearchTerm('')
       setOptions((prev) => ({ ...prev, tiposActivo: [], espacios: [] }))
       setErrors({})
     } catch (requestError) {
@@ -1377,6 +1446,90 @@ function CrearActivo() {
             onStockMarcaFilterChange={handleStockMarcaFilterChange}
             onStockModeloFilterChange={handleStockModeloFilterChange}
           />
+        )}
+
+        {isEscritorio && (
+          <section className="asset-section">
+            <h2>Software</h2>
+            <p className="asset-section-help">
+              Selecciona uno o varios programas de la tabla SOFTWARE para asociarlos al activo.
+            </p>
+            <div className="asset-grid">
+              <InputField
+                name="softwareSearchTerm"
+                label="Buscar programa"
+                value={softwareSearchTerm}
+                onChange={(event) => setSoftwareSearchTerm(event.target.value)}
+                placeholder="Ej. Adobe, Linux, Office..."
+              />
+            </div>
+
+            <div className="software-search-table-wrap">
+              <table className="software-search-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Version</th>
+                    <th>Accion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!loading.software && availableSoftwareOptions.length === 0 && (
+                    <tr>
+                      <td colSpan={3}>
+                        {softwareSearchTerm.trim()
+                          ? 'Sin resultados para la busqueda actual.'
+                          : 'No hay software disponible para agregar.'}
+                      </td>
+                    </tr>
+                  )}
+                  {loading.software && (
+                    <tr>
+                      <td colSpan={3}>Cargando catalogo de software...</td>
+                    </tr>
+                  )}
+                  {!loading.software && availableSoftwareOptions.map((software) => (
+                    <tr key={software.value}>
+                      <td>{software.raw?.nombre || software.label}</td>
+                      <td>{software.raw?.vers || '-'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="software-add-btn"
+                          onClick={() => handleAgregarSoftware(software.value)}
+                        >
+                          Agregar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="software-selected-list">
+              <h3>Programas seleccionados ({selectedSoftwareOptions.length})</h3>
+              {selectedSoftwareOptions.length === 0 && (
+                <p className="asset-section-help">Aun no has agregado programas.</p>
+              )}
+              {selectedSoftwareOptions.length > 0 && (
+                <ul>
+                  {selectedSoftwareOptions.map((software) => (
+                    <li key={software.value}>
+                      <span>{software.label}</span>
+                      <button
+                        type="button"
+                        className="extra-remove-btn"
+                        onClick={() => handleQuitarSoftware(software.value)}
+                      >
+                        Quitar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
         )}
 
         {isEscritorio && (

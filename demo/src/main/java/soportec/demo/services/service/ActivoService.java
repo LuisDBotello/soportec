@@ -13,4 +13,6 @@ public interface ActivoService {
     Activo save(Activo entity);
 
     void deleteById(Integer id);
+
+    List<Activo> findByEspacioId(Integer idEspacio);
 }

@@ -3,17 +3,21 @@ package soportec.demo.services.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import soportec.demo.dto.requests.DtoActivoCreateReq;
 import soportec.demo.models.Activo;
+import soportec.demo.models.ActivoSoftware;
 import soportec.demo.models.Cpu;
 import soportec.demo.models.CpuModelo;
 import soportec.demo.models.Disco;
@@ -28,6 +32,7 @@ import soportec.demo.models.Nic;
 import soportec.demo.models.NicModelo;
 import soportec.demo.models.Ram;
 import soportec.demo.models.RamModelo;
+import soportec.demo.models.Software;
 import soportec.demo.models.TipoActivo;
 import soportec.demo.repositories.ActivoRepository;
 import soportec.demo.services.service.ActivoService;
@@ -51,6 +56,8 @@ public class ActivoServiceImpl implements ActivoService {
     private final NicModeloServiceImpl nicModeloService;
     private final MarcaActivoServiceImpl marcaActivoService;
     private final ModeloActivoServiceImpl modeloActivoService;
+    private final SoftwareServiceImpl softwareService;
+    private final ActivoSoftwareServiceImpl activoSoftwareService;
 
     public ActivoServiceImpl(
             ActivoRepository repository,
@@ -68,7 +75,9 @@ public class ActivoServiceImpl implements ActivoService {
             MotherboardModeloServiceImpl motherboardModeloService,
             NicModeloServiceImpl nicModeloService,
             MarcaActivoServiceImpl marcaActivoService,
-            ModeloActivoServiceImpl modeloActivoService) {
+            ModeloActivoServiceImpl modeloActivoService,
+            SoftwareServiceImpl softwareService,
+            ActivoSoftwareServiceImpl activoSoftwareService) {
         this.repository = repository;
         this.tipoActivoService = tipoActivoService;
         this.estadoActivoService = estadoActivoService;
@@ -85,6 +94,8 @@ public class ActivoServiceImpl implements ActivoService {
         this.nicModeloService = nicModeloService;
         this.marcaActivoService = marcaActivoService;
         this.modeloActivoService = modeloActivoService;
+        this.softwareService = softwareService;
+        this.activoSoftwareService = activoSoftwareService;
     }
 
     @Transactional
@@ -136,6 +147,14 @@ public class ActivoServiceImpl implements ActivoService {
 
         final boolean esEscritorio = tipoActivo.getNombre() != null
                 && "ESCRITORIO".equalsIgnoreCase(tipoActivo.getNombre().trim());
+        final List<Software> softwareSeleccionado;
+        try {
+            softwareSeleccionado = esEscritorio
+                    ? resolveSoftwareSeleccionado(request.getSoftwareIds())
+                    : Collections.emptyList();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
 
         MarcaActivo marcaCatalogo = null;
         ModeloActivo modeloCatalogo = null;
@@ -223,6 +242,7 @@ public class ActivoServiceImpl implements ActivoService {
         try {
             asignarDisponibles(request, activoGuardado);
             crearComponentesNuevos(componentesByTipo, activoGuardado);
+            asociarSoftwareEnActivo(activoGuardado, softwareSeleccionado);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -390,6 +410,41 @@ public class ActivoServiceImpl implements ActivoService {
                 safe & 0xFF);
     }
 
+    private List<Software> resolveSoftwareSeleccionado(List<Integer> softwareIds) {
+        if (softwareIds == null || softwareIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> idsUnicos = softwareIds.stream()
+                .filter(id -> id != null && id > 0)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (idsUnicos.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Software> resultado = new ArrayList<>();
+        for (Integer softwareId : idsUnicos) {
+            Software software = softwareService.findById(softwareId)
+                    .orElseThrow(() -> new IllegalArgumentException("El softwareId no existe: " + softwareId));
+            resultado.add(software);
+        }
+        return resultado;
+    }
+
+    private void asociarSoftwareEnActivo(Activo activoGuardado, List<Software> softwares) {
+        if (softwares == null || softwares.isEmpty()) {
+            return;
+        }
+
+        for (Software software : softwares) {
+            ActivoSoftware relacion = new ActivoSoftware();
+            relacion.setActivo(activoGuardado);
+            relacion.setSoftware(software);
+            activoSoftwareService.save(relacion);
+        }
+    }
+
     @Override
     public List<Activo> findAll() {
         return repository.findAll();
@@ -408,5 +463,13 @@ public class ActivoServiceImpl implements ActivoService {
     @Override
     public void deleteById(Integer id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<Activo> findByEspacioId(Integer idEspacio) {
+        if (idEspacio == null) {
+            return Collections.emptyList();
+        }
+        return repository.findByEspacio_IdEspacioOrderByIdActivoAsc(idEspacio);
     }
 }

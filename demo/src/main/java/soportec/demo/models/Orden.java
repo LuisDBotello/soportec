@@ -25,8 +25,14 @@ public class Orden {
     @Column(name = "folio")
     private Integer folio;
 
-    @Column(name = "prioridad", nullable = false)
+    @Column(name = "prioridad")
     private Integer prioridad;
+
+    @Column(name = "tipo")
+    private Integer tipo;
+
+    @Column(name = "tiempo_estimado")
+    private Integer tiempoEstimado;
 
     @ManyToOne
     @JoinColumn(name = "id_usuario")

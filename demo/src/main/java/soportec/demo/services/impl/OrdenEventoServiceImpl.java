@@ -25,6 +25,11 @@ public class OrdenEventoServiceImpl implements OrdenEventoService {
     }
 
     @Override
+    public List<OrdenEvento> findByFolio(Integer folio) {
+        return repository.findByFolio(folio);
+    }
+
+    @Override
     public Optional<OrdenEvento> findById(OrdenEventoId id) {
         return repository.findById(id);
     }

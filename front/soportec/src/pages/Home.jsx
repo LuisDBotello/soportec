@@ -14,6 +14,22 @@ function Home() {
           <h3>Registrar activo</h3>
           <p>Formulario dinamico para alta de activos con componentes.</p>
         </a>
+        <a className="home-link-card" href="#/incidencias/nueva">
+          <h3>Generar incidencia</h3>
+          <p>Reporta falla de un activo por espacio y crea una orden.</p>
+        </a>
+        <a className="home-link-card" href="#/incidencias/panel">
+          <h3>Panel de incidencias</h3>
+          <p>Vista cronologica para seguimiento del encargado de taller.</p>
+        </a>
+        <a className="home-link-card" href="#/incidencias/tecnico">
+          <h3>Panel tecnico</h3>
+          <p>Consulta incidencias asignadas y registra eventos de atencion.</p>
+        </a>
+        <a className="home-link-card" href="#/incidencias/solicitante">
+          <h3>Mis incidencias</h3>
+          <p>Consulta el historial de tus solicitudes y libera la orden.</p>
+        </a>
         <a className="home-link-card" href="#/login">
           <h3>Acceso al sistema</h3>
           <p>Pantalla base de inicio de sesion para el portal.</p>

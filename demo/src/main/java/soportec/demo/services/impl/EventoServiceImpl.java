@@ -35,4 +35,9 @@ public class EventoServiceImpl implements EventoService {
     public void deleteById(Integer id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public Integer getNextId() {
+        return repository.findMaxId() + 1;
+    }
 }

@@ -19,6 +19,7 @@ public class DtoActivoCreateReq {
     private String marca;
     private String modelo;
     private String numeroSerie;
+    private List<Integer> softwareIds = new ArrayList<>();
 
     private List<ComponenteReq> componentes = new ArrayList<>();
 

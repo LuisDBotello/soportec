@@ -10,6 +10,8 @@ public interface OrdenEventoService {
 
     List<OrdenEvento> findAll();
 
+    List<OrdenEvento> findByFolio(Integer folio);
+
     Optional<OrdenEvento> findById(OrdenEventoId id);
 
     OrdenEvento save(OrdenEvento entity);
